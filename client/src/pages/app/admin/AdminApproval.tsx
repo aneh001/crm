@@ -7,8 +7,8 @@ import { ClipboardCheck, Check, X } from "lucide-react";
 export default function AdminApproval() {
   const [filter, setFilter] = useState<"pending" | "approved" | "paid" | "all">("pending");
 
-  // 获取老师费用列表（管理员视角）
-  const paymentsQuery = trpc.teacherPayment.getMyPayments.useQuery({}, { retry: false });
+  // 获取所有老师费用列表（管理员/财务视角）
+  const paymentsQuery = trpc.teacherPayments.getAllPayments.useQuery({}, { retry: false });
   const payments = paymentsQuery.data || [];
 
   const filtered = filter === "all" ? payments : payments.filter((p: any) => p.status === filter);
@@ -74,16 +74,16 @@ function ApprovalCard({
   const [expanded, setExpanded] = useState(false);
   const utils = trpc.useUtils();
 
-  const approveMutation = trpc.teacherPayment.approve.useMutation({
+  const approveMutation = trpc.teacherPayments.approve.useMutation({
     onSuccess: () => {
-      utils.teacherPayment.getMyPayments.invalidate();
+      utils.teacherPayments.getAllPayments.invalidate();
     },
   });
 
   const handleApprove = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("确认审批通过？")) {
-      approveMutation.mutate({ id: payment.id });
+      approveMutation.mutate({ id: payment.id, approved: true });
     }
   };
 

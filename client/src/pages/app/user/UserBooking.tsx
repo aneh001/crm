@@ -245,7 +245,7 @@ function TimeStep({ cityId, date, onSelect }: { cityId?: number; date: string; o
 
   if (slotsQuery.isLoading) return <LoadingSpinner />;
 
-  const slots = slotsQuery.data?.timeSlots || [];
+  const slots = slotsQuery.data?.data?.availableSlots || (slotsQuery.data as any)?.timeSlots || [];
   const available = slots.filter((s: any) => s.isAvailable);
 
   if (available.length === 0) return <EmptyState message="该日期暂无可用时段" />;
@@ -292,6 +292,7 @@ function ConfirmStep({
       teacherId: teacher?.id,
       date,
       startTime: time,
+      courseItems: [{ courseId: 0, duration: 60, price: 0 }], // 默认课程项（待用户选择）
     });
   };
 

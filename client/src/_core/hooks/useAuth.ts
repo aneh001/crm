@@ -24,6 +24,10 @@ export function useAuth(options?: UseAuthOptions) {
   });
 
   const logout = useCallback(async () => {
+    // 根据当前路径判断登出后跳转目标
+    const isAppRoute = window.location.pathname.startsWith('/app');
+    const loginPath = isAppRoute ? '/app/login' : '/login';
+
     try {
       await logoutMutation.mutateAsync();
     } catch (error: unknown) {
@@ -32,15 +36,15 @@ export function useAuth(options?: UseAuthOptions) {
         error.data?.code === "UNAUTHORIZED"
       ) {
         // Already logged out, just redirect
-        window.location.href = "/login";
+        window.location.href = loginPath;
         return;
       }
       throw error;
     } finally {
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
-      // Redirect to login page after logout
-      window.location.href = "/login";
+      // Redirect to appropriate login page after logout
+      window.location.href = loginPath;
     }
   }, [logoutMutation, utils]);
 

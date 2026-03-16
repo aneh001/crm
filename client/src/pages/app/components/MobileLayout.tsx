@@ -90,6 +90,19 @@ export default function MobileLayout({ children, hideNav }: MobileLayoutProps) {
     return typeof r === "string" ? r.split(",") : r;
   }, [user]);
 
+  // 多角色用户：检查当前访问的角色是否在用户角色列表中
+  // 如果用户没有当前角色的权限，重定向到其主角色首页
+  useEffect(() => {
+    if (!isAuthenticated || loading || !user) return;
+    // admin角色可以访问所有页面
+    if (userRoles.includes('admin')) return;
+    // 检查当前角色是否在用户角色列表中
+    if (currentRole !== 'user' && !userRoles.includes(currentRole)) {
+      const homePath = getRoleHome(userRoles);
+      setLocation(homePath);
+    }
+  }, [isAuthenticated, loading, user, currentRole, userRoles, setLocation]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">

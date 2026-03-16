@@ -12,7 +12,7 @@ export default function TeacherHome() {
 
   // 获取排课数据
   const schedulesQuery = trpc.schedules.list.useQuery(undefined, { retry: false });
-  const paymentsQuery = trpc.teacherPayment.getMyPayments.useQuery({}, { retry: false });
+  const paymentsQuery = trpc.teacherPayments.getMyPayments.useQuery({}, { retry: false });
 
   const schedules = schedulesQuery.data || [];
   const payments = paymentsQuery.data || [];

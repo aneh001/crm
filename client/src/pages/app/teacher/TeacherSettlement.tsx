@@ -8,7 +8,7 @@ export default function TeacherSettlement() {
   const [period, setPeriod] = useState<"month" | "all">("month");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const paymentsQuery = trpc.teacherPayment.getMyPayments.useQuery({}, { retry: false });
+  const paymentsQuery = trpc.teacherPayments.getMyPayments.useQuery({}, { retry: false });
   const payments = paymentsQuery.data || [];
 
   const thisMonth = new Date().toISOString().substring(0, 7);

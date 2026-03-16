@@ -1,12 +1,59 @@
 import { z } from "zod";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc.js";
 import { getDb } from "./db.js";
-import { classrooms, schedules, orders, orderItems, courses, teachers } from "../drizzle/schema.js";
+import { classrooms, schedules, orders, orderItems, courses, teachers, users, userRoleCities } from "../drizzle/schema.js";
 import { eq, and, or, sql, inArray, asc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { generateOrderNo } from "./orderNoGenerator.js";
 
 export const bookingRouter = router({
+  /**
+   * 获取指定城市的可用老师列表
+   * 用户端预约流程中选择老师时调用
+   */
+  getTeachers: publicProcedure
+    .input(z.object({
+      cityId: z.number().int().positive(),
+    }))
+    .query(async ({ input }) => {
+      const { cityId } = input;
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
+
+      // 查找该城市的所有老师
+      const cityTeachers = await db
+        .select({
+          userId: userRoleCities.userId,
+        })
+        .from(userRoleCities)
+        .where(and(
+          eq(userRoleCities.role, 'teacher'),
+          sql`JSON_CONTAINS(${userRoleCities.cities}, ${JSON.stringify([cityId.toString()])})`
+        ));
+
+      const teacherIds = cityTeachers.map(t => t.userId);
+      if (teacherIds.length === 0) {
+        return [];
+      }
+
+      // 查询老师详细信息
+      const teacherList = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          nickname: users.nickname,
+          avatarUrl: users.avatarUrl,
+          teacherAttribute: users.teacherAttribute,
+        })
+        .from(users)
+        .where(and(
+          inArray(users.id, teacherIds),
+          eq(users.isActive, true)
+        ));
+
+      return teacherList;
+    }),
+
   /**
    * 获取指定城市、日期、总时长的所有可用时间段
    * 返回可用的开始时间列表

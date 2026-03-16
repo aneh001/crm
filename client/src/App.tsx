@@ -70,9 +70,9 @@ import AdminHome from "./pages/app/admin/AdminHome";
 import AdminOrders from "./pages/app/admin/AdminOrders";
 import AdminCustomers from "./pages/app/admin/AdminCustomers";
 import AdminApproval from "./pages/app/admin/AdminApproval";
-import AdminStats from "./pages/app/admin/AdminStats";
-// 移动端App入口重定向
+import AdminStats from "./pages/app/admin/AdminStats";// 移动端 App入口重定向
 import AppRedirect from "./pages/app/AppRedirect";
+import AppRecharge from "./pages/app/user/AppRecharge";
 
 
 function Router() {
@@ -87,6 +87,7 @@ function Router() {
       <Route path={"/app/user/orders"} component={UserOrders} />
       <Route path={"/app/user/wallet"} component={UserWallet} />
       <Route path={"/app/user/profile"} component={UserProfile} />
+      <Route path={"/app/user/recharge"} component={AppRecharge} />
       {/* 销售端 */}
       <Route path={"/app/sales"} component={SalesHome} />
       <Route path={"/app/sales/register"} component={SalesRegister} />

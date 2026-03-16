@@ -11,6 +11,50 @@ import { eq, and, or, sql, inArray } from "drizzle-orm";
  */
 export const schedulesRouter = router({
   /**
+   * 获取当前老师的排课列表
+   * 老师端接口：强制使用JWT中的userId作为teacherId
+   * 返回该老师所有的排课记录（用于日历视图和课程详情）
+   */
+  list: protectedProcedure
+    .query(async ({ ctx }) => {
+      // 检查用户角色
+      if (!ctx.user.roles.includes('teacher')) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only teachers can access schedule list',
+        });
+      }
+
+      const teacherId = ctx.user.id;
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
+
+      // 查询该老师的所有排课记录
+      const teacherSchedules = await db
+        .select()
+        .from(schedules)
+        .where(eq(schedules.teacherId, teacherId))
+        .orderBy(sql`${schedules.startTime} ASC`);
+
+      // 格式化返回数据，兼容前端期望的字段
+      return teacherSchedules.map(s => ({
+        id: s.id,
+        date: s.classDate ? new Date(s.classDate).toISOString().split('T')[0] : '',
+        classTime: s.classTime || '',
+        startTime: s.startTime ? new Date(s.startTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }) : '',
+        endTime: s.endTime ? new Date(s.endTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }) : '',
+        courseName: s.deliveryCourse || s.courseType || '课程',
+        deliveryCourse: s.deliveryCourse || '',
+        customerName: s.customerName || '',
+        cityName: s.city || '',
+        room: '',
+        teacherFee: null,
+        notes: '',
+        status: s.status || 'scheduled',
+      }));
+    }),
+
+  /**
    * 获取老师排班可用性
    * 老师端接口：强制使用JWT中的userId，忽略前端传入的teacherId
    */

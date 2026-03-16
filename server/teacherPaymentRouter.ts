@@ -100,6 +100,63 @@ export const teacherPaymentRouter = router({
     }),
 
   /**
+   * 管理员/财务查询所有老师的费用记录（用于审批页面）
+   */
+  getAllPayments: financeProcedure
+    .input(
+      z.object({
+        status: z.enum(["pending", "approved", "paid"]).optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      }).optional()
+    )
+    .query(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "数据库不可用" });
+
+      const conditions: any[] = [];
+
+      if (input?.status) {
+        conditions.push(eq(teacherPayments.status, input.status));
+      }
+      if (input?.startDate) {
+        conditions.push(gte(teacherPayments.createdAt, new Date(input.startDate)));
+      }
+      if (input?.endDate) {
+        conditions.push(lte(teacherPayments.createdAt, new Date(input.endDate)));
+      }
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      const payments = await database
+        .select({
+          id: teacherPayments.id,
+          amount: teacherPayments.amount,
+          status: teacherPayments.status,
+          teacherId: teacherPayments.teacherId,
+          teacherName: users.name,
+          createdAt: teacherPayments.createdAt,
+          notes: teacherPayments.notes,
+        })
+        .from(teacherPayments)
+        .leftJoin(users, eq(teacherPayments.teacherId, users.id))
+        .where(whereClause)
+        .orderBy(desc(teacherPayments.createdAt));
+
+      return payments.map(p => ({
+        id: p.id,
+        amount: p.amount ? parseFloat(p.amount.toString()) : 0,
+        status: p.status,
+        teacherName: p.teacherName || '未知老师',
+        customerName: '',
+        courseName: '',
+        date: p.createdAt ? new Date(p.createdAt).toISOString().split('T')[0] : '',
+        createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : '',
+        notes: p.notes || '',
+      }));
+    }),
+
+  /**
    * 老师查询收入统计
    */
   getPaymentStats: teacherProcedure.query(async ({ ctx }) => {

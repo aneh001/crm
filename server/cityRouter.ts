@@ -9,6 +9,11 @@ export const cityRouter = router({
     const cities = await db.getAllCities();
     return cities;
   }),
+  // 获取城市列表（移动端别名，与getAll相同逻辑）
+  list: protectedProcedure.query(async () => {
+    const cities = await db.getAllCities();
+    return cities;
+  }),
   // 获取城市月度业绩趋势数据
   getCityMonthlyTrends: protectedProcedure.query(async () => {
     const monthlyTrends = await db.getCityMonthlyTrends();

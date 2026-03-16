@@ -40,7 +40,7 @@ export default function UserWallet() {
             ¥{balance.toFixed(2)}
           </p>
           <button
-            onClick={() => setLocation("/recharge")}
+            onClick={() => setLocation("/app/user/recharge")}
             className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-black font-semibold rounded-xl active:scale-[0.98] transition-transform"
           >
             <Plus className="w-4 h-4" />

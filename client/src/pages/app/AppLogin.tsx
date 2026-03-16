@@ -15,8 +15,12 @@ export default function AppLogin() {
   const loginMutation = trpc.auth.loginWithUserAccount.useMutation({
     onSuccess: (data) => {
       // 根据角色跳转到对应首页
-      const roles = data.user.roles || [(data.user as any).role || "user"];
-      const homePath = getRoleHome(roles);
+      const rawRoles: unknown = data.user.roles || (data.user as any).role || 'user';
+      // 确保 roles 是数组格式
+      const roleArray: string[] = Array.isArray(rawRoles)
+        ? rawRoles
+        : (typeof rawRoles === 'string' ? rawRoles.split(',') : ['user']);
+      const homePath = roleArray.length > 0 ? getRoleHome(roleArray) : '/app/user';
       setTimeout(() => {
         window.location.href = homePath;
       }, 300);
@@ -130,7 +134,7 @@ export default function AppLogin() {
         {/* 忘记密码 */}
         <div className="mt-6 text-center">
           <button
-            onClick={() => setLocation("/forgot-password")}
+            onClick={() => setLocation("/app/forgot-password")}
             className="text-slate-500 text-sm hover:text-amber-400 transition-colors"
           >
             忘记密码？
